@@ -45,5 +45,5 @@ long get_time_by_cpu(struct timeval user, struct timeval sys);
 int printstdout(int pipefd, char *buffer);
 int printstati(struct rusage usage, struct timeval start_time, struct timeval end_time);
 int showactivetasks();
-
+struct task findactivetaskbypid(int pid);
 #endif 

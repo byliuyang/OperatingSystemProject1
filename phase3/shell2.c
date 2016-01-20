@@ -49,10 +49,17 @@ int main(int argc, char *argv[]) {
   free(line);
 }
 
+
+/*
+ * This function executes a command
+ * @param cmd The command to execute
+ */
 int execute(struct command cmd){
 	int pid; // Process id
 	int mpid;
+	struct task t;
 	int status; // Process status
+	int tid;
 
 	int pipefd[2]; // Pipe file descriptor
 	pipe(pipefd);
@@ -90,40 +97,48 @@ int execute(struct command cmd){
 
 			// Wait child process to terminate
 			if((mpid = wait3(&status, WNOHANG, NULL))) {
-				printf("[%d] %d \n", mpid);
+				printf("mpid: %d\n", mpid);
+				t = findactivetaskbypid(mpid);
+				if(t.pid != -1) {
+					printf("[%d] %d %s completed.\n", t.tid, t.pid, t.cmdname);
 
-				wait4(pid, &status, 0, &usage);
+				// 	wait4(pid, &status, 0, &usage);
 
-				// Print out 
-				while(read(pipefd[0], buffer, sizeof buffer)) {
-					printf("%s", buffer);
+				// 	// Print out 
+				// 	while(read(pipefd[0], buffer, sizeof buffer)) {
+				// 		printf("%s", buffer);
+				// 	}
+
+				// 	close(pipefd[0]);
+					
+				// 	puts("");
+				// 	time_by_cpu = get_time_by_cpu(usage.ru_utime, usage.ru_stime);
+
+				// 	printf("CPU time used in microsecond:%ld\n", time_by_cpu);
+				// 	printf("# of times the process preempted involuntarily:%ld\n", usage.ru_nivcsw);
+				// 	printf("# of times the process give up CPU voluntarily:%ld\n", usage.ru_nvcsw);
+				// 	printf("# of page fault:%ld\n", usage.ru_minflt);
+				// 	printf(
+				// 		"# of page fault that could be satisfied using unreclaimed pages:%ld\n",
+				// 		usage.ru_majflt);
 				}
-
-				close(pipefd[0]);
-				
-				puts("");
-				time_by_cpu = get_time_by_cpu(usage.ru_utime, usage.ru_stime);
-
-				printf("CPU time used in microsecond:%ld\n", time_by_cpu);
-				printf("# of times the process preempted involuntarily:%ld\n", usage.ru_nivcsw);
-				printf("# of times the process give up CPU voluntarily:%ld\n", usage.ru_nvcsw);
-				printf("# of page fault:%ld\n", usage.ru_minflt);
-				printf(
-					"# of page fault that could be satisfied using unreclaimed pages:%ld\n",
-					usage.ru_majflt);
 			}
 
 			if(cmd.bgexec) { 
 
+				// Allocate space for 1 more task
 				ts.count++;
 				ts.numactive++;
 				ts.tasks = (struct task *)realloc(ts.tasks, ts.count * sizeof (struct task));
 
-				ts.tasks[ts.count - 1].pid = pid;
-				ts.tasks[ts.count - 1].cmdname = strdup(cmd.name);
-				ts.tasks[ts.count - 1].active = 1;
+				tid = ts.count - 1;
 
-				printf("[%d] %d\n", ts.count, pid);
+				ts.tasks[tid].tid = tid;
+				ts.tasks[tid].pid = pid;
+				ts.tasks[tid].cmdname = strdup(cmd.name);
+				ts.tasks[tid].active = 1;
+
+				printf("[%d] %d %s\n", tid, pid, ts.tasks[tid].cmdname);
 
 
 			} else {
@@ -266,6 +281,9 @@ int run_command(struct command cmd) {
 	return 2;
 }
 
+/*
+ * This function shows all active tasks
+ */
 int showactivetasks() {
 	int i;
 	struct task t;
@@ -277,9 +295,14 @@ int showactivetasks() {
 	}
 }
 
+/*
+ * This function finds an active task by its pid
+ * @param pid The pid to search for
+ */
 struct task findactivetaskbypid(int pid) {
 	int i;
 	struct task t;
+	t.pid = -1;
 
 	for(i = 0; i < ts.count; i++) {
 		t = ts.tasks[i];
