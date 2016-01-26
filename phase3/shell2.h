@@ -42,8 +42,9 @@ struct command get_command(struct arginfo ai);
 struct arginfo getarginfo(int prompt_len, char *str);
 int run_command(struct command cmd);
 long get_time_by_cpu(struct timeval user, struct timeval sys);
-int printstdout(int pipefd, char *buffer);
-int printstati(struct rusage usage, struct timeval start_time, struct timeval end_time);
+void printstat(struct rusage usage);
 int showactivetasks();
-struct task findactivetaskbypid(int pid);
+int findactivetaskbypid(int pid);
+void waitForChild(int options);
+void freetasks();
 #endif 

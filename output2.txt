@@ -1,0 +1,47 @@
+==> sleep 3
+
+Time elasped in microsecond:3001541
+CPU time used in microsecond:-846578752
+# of times the process preempted involuntarily:-1076310136
+# of times the process give up CPU voluntarily:-1076309936
+# of page fault:2
+# of page fault that could be satisfied using unreclaimed pages:152494268
+==> sleep 2
+
+Time elasped in microsecond:2001857
+CPU time used in microsecond:-846578752
+# of times the process preempted involuntarily:-2045200640
+# of times the process give up CPU voluntarily:0
+# of page fault:2
+# of page fault that could be satisfied using unreclaimed pages:152494332
+==> sleep 1
+
+Time elasped in microsecond:1002969
+CPU time used in microsecond:-846578752
+# of times the process preempted involuntarily:-2045200640
+# of times the process give up CPU voluntarily:0
+# of page fault:2
+# of page fault that could be satisfied using unreclaimed pages:152494396
+==> ls
+Makefile
+output1.text
+output2.text
+phase1
+phase2
+phase3
+runCommand
+runCommand.o
+shell
+shell2
+shell.o
+test1.txt
+test2.txt
+test3.txt
+
+Time elasped in microsecond:1541
+CPU time used in microsecond:-846578752
+# of times the process preempted involuntarily:-2045200640
+# of times the process give up CPU voluntarily:0
+# of page fault:3
+# of page fault that could be satisfied using unreclaimed pages:152494440
+==> exit

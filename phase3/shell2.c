@@ -25,15 +25,19 @@ int main(int argc, char *argv[]) {
     // Call to get_command
     // Checkout exit, cd, if true, run in parent process; run in child process if false
     printf("%s", PROMPT);
-
     getline(&line, &len,stdin);
 
     ai = getarginfo(strlen(PROMPT), line);
     cmd = get_command(ai);
 
     if(!strcmp(cmd.name, CMD_EXIT)) {
+    	if (ts.numactive > 0) {
+    		printf("Still waiting for %d tasks to terminate.\n", ts.numactive);
+    		waitForChild(0);
+    	}
     	free(line);
-    	exit(0);
+    	freetasks();
+		exit(0);
 
     } else if(!strcmp(cmd.name, CMD_CD)) {
     	if(chdir(cmd.params[1]) == -1)
@@ -42,11 +46,59 @@ int main(int argc, char *argv[]) {
     	showactivetasks();
     } 
     else {
-    	// execute(cmd, &ts);
     	execute(cmd);
     }
   }
   free(line);
+}
+
+
+/*
+ * This function waits for a task to finish, then prints its usage statistics
+ * @param options The options parameter to be passed into wait4 (e.g. WNOHANG)
+ */
+void waitForChild(int options) {
+	int pid;
+	int status; // Process status
+	int tindex;
+	struct timeval start_time;
+	struct timeval end_time;
+	struct rusage usage;
+
+	while(pid = wait3(&status, options, NULL)) {
+		tindex = findactivetaskbypid(pid);
+		if(tindex != -1) {
+			ts.tasks[tindex].active = 0;
+			ts.numactive--;
+			printf("[%d] %d %s completed.\n", ts.tasks[tindex].tid, ts.tasks[tindex].pid, ts.tasks[tindex].cmdname);
+
+			wait4(ts.tasks[tindex].pid, &status, 0, &usage);
+			
+			// Usage data
+			printstat(usage);
+			tindex = -1;
+		} else {
+			break;
+		}
+	}
+}
+
+/*
+ * THis method print out the statistics information
+ * @param usage The usage struct containing information
+ */
+void printstat(struct rusage usage) {
+	unsigned long time_by_cpu;
+
+	puts("");
+	time_by_cpu = get_time_by_cpu(usage.ru_utime, usage.ru_stime);
+	printf("CPU time used in microsecond:%lu\n", time_by_cpu);
+	printf("# of times the process preempted involuntarily:%lu\n", usage.ru_nivcsw);
+	printf("# of times the process give up CPU voluntarily:%lu\n", usage.ru_nvcsw);
+	printf("# of page fault:%ld\n", usage.ru_minflt);
+	printf(
+		"# of page fault that could be satisfied using unreclaimed pages:%lu\n",
+		usage.ru_majflt);
 }
 
 
@@ -56,14 +108,8 @@ int main(int argc, char *argv[]) {
  */
 int execute(struct command cmd){
 	int pid; // Process id
-	int mpid;
-	struct task t;
 	int status; // Process status
 	int tid;
-
-	int pipefd[2]; // Pipe file descriptor
-	pipe(pipefd);
-	char buffer[MAX_STR_LENGTH]; // Buffer output
 
 	struct timeval start_time;
 	struct timeval end_time;
@@ -71,61 +117,24 @@ int execute(struct command cmd){
 	// Resource usage statistics
 	struct rusage usage;
 
-	long time_by_cpu;
-
 	pid = fork();
 	switch(pid) {
 		case -1:
 			puts("Fail to create child process");
 			break;
 		case 0:
-			// puts("Inside child process");
-			close(pipefd[0]);
-
-			// Copy output into pipe
-			dup2(pipefd[1], STDOUT_FILENO);
-			// Copy error messages into pipe
-			dup2(pipefd[1], STDERR_FILENO);
 			
 			if(run_command(cmd) == 2) 
 				puts("Cannot run command");
 			break;
 		default:
 
-			// puts("Inside parent process");
-			close(pipefd[1]);
-
 			// Wait child process to terminate
-			if((mpid = wait3(&status, WNOHANG, NULL))) {
-				printf("mpid: %d\n", mpid);
-				t = findactivetaskbypid(mpid);
-				if(t.pid != -1) {
-					printf("[%d] %d %s completed.\n", t.tid, t.pid, t.cmdname);
-
-				// 	wait4(pid, &status, 0, &usage);
-
-				// 	// Print out 
-				// 	while(read(pipefd[0], buffer, sizeof buffer)) {
-				// 		printf("%s", buffer);
-				// 	}
-
-				// 	close(pipefd[0]);
-					
-				// 	puts("");
-				// 	time_by_cpu = get_time_by_cpu(usage.ru_utime, usage.ru_stime);
-
-				// 	printf("CPU time used in microsecond:%ld\n", time_by_cpu);
-				// 	printf("# of times the process preempted involuntarily:%ld\n", usage.ru_nivcsw);
-				// 	printf("# of times the process give up CPU voluntarily:%ld\n", usage.ru_nvcsw);
-				// 	printf("# of page fault:%ld\n", usage.ru_minflt);
-				// 	printf(
-				// 		"# of page fault that could be satisfied using unreclaimed pages:%ld\n",
-				// 		usage.ru_majflt);
-				}
-			}
+			waitForChild(WNOHANG);
+			
 
 			if(cmd.bgexec) { 
-
+				
 				// Allocate space for 1 more task
 				ts.count++;
 				ts.numactive++;
@@ -139,29 +148,14 @@ int execute(struct command cmd){
 				ts.tasks[tid].active = 1;
 
 				printf("[%d] %d %s\n", tid, pid, ts.tasks[tid].cmdname);
-
+				
 
 			} else {
-				// Wait child process to terminate
+
+				// // Wait child process to terminate
 				wait4(pid, &status, 0, &usage);
-
-				// Print out 
-				while(read(pipefd[0], buffer, sizeof buffer)) {
-					printf("%s", buffer);
-				}
-
-				close(pipefd[0]);
 				
-				puts("");
-				time_by_cpu = get_time_by_cpu(usage.ru_utime, usage.ru_stime);
-
-				printf("CPU time used in microsecond:%ld\n", time_by_cpu);
-				printf("# of times the process preempted involuntarily:%ld\n", usage.ru_nivcsw);
-				printf("# of times the process give up CPU voluntarily:%ld\n", usage.ru_nvcsw);
-				printf("# of page fault:%ld\n", usage.ru_minflt);
-				printf(
-					"# of page fault that could be satisfied using unreclaimed pages:%ld\n",
-					usage.ru_majflt);
+				printstat(usage);
 			}
 	}
 
@@ -178,8 +172,6 @@ struct arginfo getarginfo(int prompt_len, char *str) {
 	/* 
 	 * 1) spaces ' ': skip them if not waiting for a double quote
 	 * 2) double quote '"': look for the second double quote and dont skip spaces between them
-	 * 3) backslash '\': treate the following space as a space character
-	 * 
 	 */
 
 	ai.argc = 0;
@@ -299,18 +291,19 @@ int showactivetasks() {
  * This function finds an active task by its pid
  * @param pid The pid to search for
  */
-struct task findactivetaskbypid(int pid) {
+int findactivetaskbypid(int pid) {
 	int i;
 	struct task t;
-	t.pid = -1;
 
 	for(i = 0; i < ts.count; i++) {
 		t = ts.tasks[i];
-		if(t.active && (t.pid == pid)) return t;
+		if(t.active && (t.pid == pid)) return i;
 			
 	}
 
-	return t;
+	i = -1;
+
+	return i;
 }
 
 /*
@@ -321,4 +314,16 @@ struct task findactivetaskbypid(int pid) {
  */
 long get_time_by_cpu(struct timeval user, struct timeval sys) {
 	return (user.tv_sec * 1000000 + user.tv_usec) + (sys.tv_sec * 1000000 + sys.tv_usec);
+}
+
+/*
+ * This method frees all tasks in the task list, and then frees the
+ */
+void freetasks() {
+	int i;
+	for (i = 0; i < ts.count; i++) {
+		free(ts.tasks[i].cmdname);
+	}
+
+	free(ts.tasks);
 }

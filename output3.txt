@@ -1,0 +1,46 @@
+==> sleep 5 &
+[0] 6167 sleep
+==> sleep 10 &
+[1] 6168 sleep
+==> sleep 10 &
+[0] 6167 sleep completed.
+
+CPU time used in microsecond:1510781952
+# of times the process preempted involuntarily:3078152192
+# of times the process give up CPU voluntarily:0
+# of page fault:0
+# of page fault that could be satisfied using unreclaimed pages:3076884076
+[2] 6169 sleep
+==> sleep 2
+
+CPU time used in microsecond:0
+# of times the process preempted involuntarily:1
+# of times the process give up CPU voluntarily:2
+# of page fault:204
+# of page fault that could be satisfied using unreclaimed pages:0
+==> ls
+Makefile     output3.txt  phase3	shell	 test1.txt
+output1.txt  phase1	  runCommand	shell2	 test2.txt
+output2.txt  phase2	  runCommand.o	shell.o  test3.txt
+
+CPU time used in microsecond:0
+# of times the process preempted involuntarily:1
+# of times the process give up CPU voluntarily:1
+# of page fault:281
+# of page fault that could be satisfied using unreclaimed pages:0
+==> exit
+Still waiting for 2 tasks to terminate.
+[1] 6168 sleep completed.
+
+CPU time used in microsecond:1004713804
+# of times the process preempted involuntarily:3076723375
+# of times the process give up CPU voluntarily:3217092536
+# of page fault:-1077875160
+# of page fault that could be satisfied using unreclaimed pages:839159769
+[2] 6169 sleep completed.
+
+CPU time used in microsecond:1004713804
+# of times the process preempted involuntarily:3076723375
+# of times the process give up CPU voluntarily:3217092536
+# of page fault:-1077875160
+# of page fault that could be satisfied using unreclaimed pages:839159769

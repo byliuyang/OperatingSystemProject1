@@ -1,0 +1,19 @@
+total 96
+drwxrwxrwx 6 1000 1000  4096 Jan 25 19:06 .
+-rw-rw-r-- 1 1000 1000     0 Jan 25 19:06 output1.text
+-rwxrwxr-x 1 1000 1000    10 Jan 25 19:05 runCommand
+-rw-rw-rw- 1 1000 1000    10 Jan 25 19:04 test1.txt
+-rw-rw-rw- 1 1000 1000     0 Jan 25 18:59 test3.txt
+-rw-rw-rw- 1 1000 1000     0 Jan 25 18:58 test2.txt
+-rwxrwxr-x 1 1000 1000 12673 Jan 25 18:54 shell2
+drwxrwxr-x 2 1000 1000  4096 Jan 25 18:54 phase3
+-rwxrwxr-x 1 1000 1000 12642 Jan 25 18:50 shell
+drwxrwxrwx 2 1000 1000  4096 Jan 25 18:50 phase2
+drwxrwxrwx 2 1000 1000  4096 Jan 25 18:50 phase1
+-rw-rw-rw- 1 1000 1000   512 Jan 25 18:44 Makefile
+-rw-rw-rw- 1 1000 1000    63 Jan 25 18:44 .floo
+-rw-rw-r-- 1 1000 1000 11504 Jan 25 18:31 shell.o
+-rw-rw-r-- 1 1000 1000  7800 Jan 25 18:30 runCommand.o
+drwxrwxr-x 8 1000 1000  4096 Jan 20 17:09 .git
+drwxrwxr-x 4 1000 1000  4096 Jan 20 16:04 ..
+-rw-rw-rw- 1 1000 1000    49 Jan 18 03:41 .flooignore

@@ -1,0 +1,5 @@
+sleep 3
+sleep 2
+sleep 1
+ls
+exit

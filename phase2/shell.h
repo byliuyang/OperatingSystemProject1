@@ -25,7 +25,5 @@ struct arginfo getarginfo(int prompt_len, char *str);
 int run_command(struct command cmd);
 int get_time_elasped(struct timeval start, struct timeval end);
 long get_time_by_cpu(struct timeval user, struct timeval sys);
-int printstdout(int pipefd, char *buffer);
-int printstati(struct rusage usage, struct timeval start_time, struct timeval end_time);
 
 #endif 
